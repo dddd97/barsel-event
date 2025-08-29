@@ -21,7 +21,7 @@ A modern event management system with doorprize drawings, built with Ruby on Rai
 1. **Clone the repository**
 ```bash
 git clone https://github.com/dddd97/barsel-event.git
-cd barsel-event-v2
+cd barsel-event
 ```
 
 2. **Configure environment variables**
