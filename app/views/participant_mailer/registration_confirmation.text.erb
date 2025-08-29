@@ -1,0 +1,26 @@
+KONFIRMASI PENDAFTARAN
+====================
+
+Halo <%= @participant.name %>,
+
+Terima kasih telah mendaftar di acara <%= @event.name %>.
+
+Berikut adalah detail pendaftaran Anda:
+
+Nomor Registrasi: <%= @participant.registration_number %>
+Nama: <%= @participant.name %>
+<% if @participant.institution.present? %>Institusi: <%= @participant.institution %><% end %>
+Tanggal Acara: <%= @event.event_date&.strftime('%d %B %Y') || 'Akan diumumkan' %>
+Lokasi: <%= @event.location || 'Akan diumumkan' %>
+
+Harap simpan email ini sebagai referensi. Tunjukkan nomor registrasi Anda saat hadir di acara.
+
+Untuk informasi lebih lanjut, silakan kunjungi situs web kami atau hubungi panitia acara.
+
+<% if @event.registration_open? %>
+Pendaftaran masih dibuka hingga <%= @event.registration_end&.strftime('%d %B %Y, %H:%M') || 'batas waktu yang akan ditentukan' %>.
+<% end %>
+
+--
+Email ini dibuat secara otomatis. Mohon tidak membalas email ini.
+© <%= Time.now.year %> <%= @event.name %> - Semua hak dilindungi undang-undang. 

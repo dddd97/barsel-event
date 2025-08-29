@@ -1,0 +1,18 @@
+{
+  "all": {
+    "sourceCodeDir": "app/frontend",
+    "entrypointsDir": "app/frontend/entrypoints",
+    "watchAdditionalPaths": ["app/views/**/*"],
+    "publicOutputDir": "public/vite",
+    "publicDir": "app/frontend/public",
+    "assetsDir": "assets"
+  },
+  "development": {
+    "autoBuild": true,
+    "publicOutputDir": "public/vite-dev"
+  },
+  "test": {
+    "autoBuild": true,
+    "publicOutputDir": "public/vite-test"  
+  }
+}

@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "Peserta Event #{@event.id}") do |sheet|
+  # Judul
+  sheet.add_row ["DAFTAR PESERTA - #{@event.name.upcase}"]
+  sheet.add_row ["Tanggal Export: #{Date.today.strftime('%d %B %Y')}"]
+  sheet.add_row [] # Baris kosong
+
+  # Header
+  headers = ["No. Peserta", "Nama", "NIK", "Email", "No. Telepon", "Institusi", "Status"]
+  sheet.add_row headers, style: xlsx_package.workbook.styles.add_style(b: true, bg_color: "0066CC", fg_color: "FFFFFF")
+  
+  # Data
+  participants = @event.participants.includes(:winnings).order(created_at: :desc)
+  
+  participants.each do |participant|
+    status = participant.winnings.any? ? "Menang" : "Belum Menang"
+    sheet.add_row [
+      participant.registration_number,
+      participant.name,
+      participant.nik,
+      participant.email || "-",
+      participant.phone_number,
+      participant.institution || "-",
+      status
+    ]
+  end
+
+  # Styling
+  sheet.merge_cells("A1:G1")
+  sheet.merge_cells("A2:G2")
+  sheet.row_style 0, xlsx_package.workbook.styles.add_style(b: true, sz: 16, alignment: { horizontal: :center })
+  sheet.row_style 1, xlsx_package.workbook.styles.add_style(alignment: { horizontal: :center })
+  
+  # Auto-width columns
+  sheet.column_widths 15, 25, 20, 25, 15, 20, 15
+end 

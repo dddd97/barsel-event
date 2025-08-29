@@ -1,0 +1,91 @@
+id:
+  date:
+    formats:
+      default: "%d %B %Y"
+      short: "%d %b"
+      long: "%A, %d %B %Y"
+      
+    day_names: [Minggu, Senin, Selasa, Rabu, Kamis, Jumat, Sabtu]
+    abbr_day_names: [Min, Sen, Sel, Rab, Kam, Jum, Sab]
+    
+    month_names: [~, Januari, Februari, Maret, April, Mei, Juni, Juli, Agustus, September, Oktober, November, Desember]
+    abbr_month_names: [~, Jan, Feb, Mar, Apr, Mei, Jun, Jul, Agt, Sep, Okt, Nov, Des]
+    
+    order:
+      - :day
+      - :month
+      - :year
+      
+  time:
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S %z"
+      short: "%d %b %H:%M"
+      long: "%d %B %Y %H:%M"
+    
+    am: "am"
+    pm: "pm"
+    
+  datetime:
+    distance_in_words:
+      half_a_minute: "setengah menit"
+      less_than_x_seconds:
+        one:   "kurang dari 1 detik"
+        other: "kurang dari %{count} detik"
+      x_seconds:
+        one:   "1 detik"
+        other: "%{count} detik"
+      less_than_x_minutes:
+        one:   "kurang dari 1 menit"
+        other: "kurang dari %{count} menit"
+      x_minutes:
+        one:   "1 menit"
+        other: "%{count} menit"
+      about_x_hours:
+        one:   "sekitar 1 jam"
+        other: "sekitar %{count} jam"
+      x_days:
+        one:   "1 hari"
+        other: "%{count} hari"
+      about_x_months:
+        one:   "sekitar 1 bulan"
+        other: "sekitar %{count} bulan"
+      x_months:
+        one:   "1 bulan"
+        other: "%{count} bulan"
+      about_x_years:
+        one:   "sekitar 1 tahun"
+        other: "sekitar %{count} tahun"
+      over_x_years:
+        one:   "lebih dari 1 tahun"
+        other: "lebih dari %{count} tahun"
+      almost_x_years:
+        one:   "hampir 1 tahun"
+        other: "hampir %{count} tahun"
+        
+  helpers:
+    select:
+      prompt: "Silakan pilih"
+    submit:
+      create: "Buat %{model}"
+      update: "Perbarui %{model}"
+      submit: "Simpan %{model}"
+      
+  activerecord:
+    errors:
+      models:
+        event:
+          attributes:
+            category:
+              inclusion: "harus berupa 'utama' atau 'reguler'"
+        prize:
+          attributes:
+            category:
+              inclusion: "harus berupa 'utama' atau 'reguler'"
+      messages:
+        inclusion: "tidak termasuk dalam daftar"
+        
+  errors:
+    messages:
+      inclusion: "tidak termasuk dalam daftar yang diperbolehkan"
+      blank: "tidak boleh kosong"
+      required: "wajib diisi" 

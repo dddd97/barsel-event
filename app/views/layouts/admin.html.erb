@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Admin Dashboard - Barsel Event" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f8f9fa;
+      }
+
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 250px;
+        background-color: #343a40;
+        color: white;
+        padding-top: 20px;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .sidebar-header {
+        padding: 0 20px 20px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+      }
+
+      .sidebar-header img {
+        height: 30px;
+        margin-right: 10px;
+      }
+
+      .sidebar-header h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .sidebar-nav li a {
+        display: block;
+        padding: 12px 20px;
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+
+      .sidebar-nav li a:hover {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+      }
+
+      .sidebar-nav li a.active {
+        background-color: rgba(255,255,255,0.2);
+        color: white;
+        border-left: 4px solid #4CAF50;
+      }
+
+      .sidebar-nav li a i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .content {
+        flex: 1;
+        margin-left: 250px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 0 20px 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 20px;
+      }
+
+      .content-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #333;
+      }
+
+      .btn {
+        display: inline-block;
+        font-weight: 500;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        user-select: none;
+        border: 1px solid transparent;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: 0.25rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      
+      .btn-primary {
+        color: #fff;
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+      }
+      
+      .btn-primary:hover {
+        background-color: #45a049;
+        border-color: #45a049;
+      }
+      
+      .btn-secondary {
+        color: #333;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+      }
+      
+      .btn-secondary:hover {
+        background-color: #dde2e6;
+        border-color: #dde2e6;
+      }
+
+      .btn-danger {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+      }
+      
+      .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+      }
+
+      .admin-footer {
+        margin-top: auto;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.9rem;
+        padding-bottom: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 70px;
+        }
+        
+        .sidebar-header h1 {
+          display: none;
+        }
+        
+        .sidebar-nav li a span {
+          display: none;
+        }
+        
+        .sidebar-nav li a i {
+          margin-right: 0;
+          font-size: 1.2rem;
+        }
+        
+        .content {
+          margin-left: 70px;
+        }
+      }
+    </style>
+    
+    <%= yield :styles %>
+  </head>
+
+  <body>
+    <div class="admin-layout">
+      <% unless controller_name == 'sessions' && action_name == 'new' %>
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <img src="/images/barsel-logo.png" alt="Barsel Event Logo" style="height: 30px; margin-right: 10px;">
+            <h1>Admin Panel</h1>
+          </div>
+          
+          <ul class="sidebar-nav">
+            <li>
+              <a href="<%= admin_panel_dashboard_path %>" class="<%= current_page?(admin_panel_dashboard_path) ? 'active' : '' %>">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="<%= admin_panel_events_path %>" class="<%= controller_name == 'events' ? 'active' : '' %>">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+              </a>
+            </li>
+            <% if @event&.persisted? %>
+              <li>
+                <a href="<%= admin_panel_event_participants_path(@event) %>" class="<%= controller_name == 'event_participants' ? 'active' : '' %>">
+                  <i class="fas fa-users"></i>
+                  <span>Peserta</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_panel_event_prizes_path(@event) %>" class="<%= controller_name == 'event_prizes' ? 'active' : '' %>">
+                  <i class="fas fa-gift"></i>
+                  <span>Hadiah</span>
+                </a>
+              </li>
+              <li>
+                <a href="<%= admin_panel_event_live_drawing_path(@event) %>" class="<%= controller_name == 'event_live_drawing' ? 'active' : '' %>">
+                  <i class="fas fa-video"></i>
+                  <span>Live Drawing</span>
+                </a>
+              </li>
+            <% end %>
+            <li>
+              <a href="<%= admin_panel_admins_path %>" class="<%= controller_name == 'admins' ? 'active' : '' %>">
+                <i class="fas fa-users-cog"></i>
+                <span>Admin</span>
+              </a>
+            </li>
+            <li>
+              <a href="<%= root_path %>" target="_blank">
+                <i class="fas fa-external-link-alt"></i>
+                <span>Lihat Website</span>
+              </a>
+            </li>
+            <li>
+              <%= link_to admin_panel_logout_path, method: :delete do %>
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+              <% end %>
+            </li>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="content" style="<%= 'margin-left: 0;' if controller_name == 'sessions' && action_name == 'new' %>">
+        <% if flash[:notice] %>
+          <div style="background-color: #d4edda; color: #155724; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+            <%= flash[:notice] %>
+          </div>
+        <% end %>
+        
+        <% if flash[:alert] %>
+          <div style="background-color: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+        
+        <%= yield %>
+
+        <div class="admin-footer">
+          &copy; <%= Date.current.year %> Barsel Event App - Admin Panel | Versi 2.0
+        </div>
+      </div>
+    </div>
+  </body>
+</html> 

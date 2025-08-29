@@ -1,0 +1,116 @@
+FROM ruby:3.3.0-slim
+
+# Set environment variables for encoding
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+# Production optimizations
+ENV RAILS_ENV=production
+ENV BUNDLE_WITHOUT=development:test
+ENV BUNDLE_DEPLOYMENT=1
+ENV BUNDLE_JOBS=4
+
+# Chrome environment variables for Docker
+ENV CHROME_BIN=/usr/bin/google-chrome-stable
+ENV CHROME_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+# Install system dependencies in layers for better caching
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+  postgresql-client \
+  build-essential \
+  libpq-dev \
+  curl \
+  wget \
+  gnupg \
+  ca-certificates \
+  gosu \
+  imagemagick \
+  libvips-dev \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get update -qq \
+  && apt-get install -y --no-install-recommends nodejs \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Chrome dependencies and Chrome
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+  fonts-liberation \
+  libappindicator3-1 \
+  libasound2 \
+  libatk-bridge2.0-0 \
+  libdrm2 \
+  libgtk-3-0 \
+  libnspr4 \
+  libnss3 \
+  libxss1 \
+  libxtst6 \
+  xdg-utils \
+  && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list \
+  && apt-get update -qq \
+  && apt-get install -y --no-install-recommends google-chrome-stable \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser -G audio,video appuser \
+  && mkdir -p /home/appuser/Downloads \
+  && chown -R appuser:appuser /home/appuser
+
+WORKDIR /app
+
+# Verify Node.js installation
+RUN node --version && npm --version
+
+# Install Puppeteer for Grover PDF generation
+RUN npm install -g puppeteer
+
+# Set bundle path
+ENV BUNDLE_PATH=/usr/local/bundle
+
+# Copy and install Ruby dependencies
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --jobs 4 --retry 3 \
+  && rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git \
+  && find "${BUNDLE_PATH}" -name "*.c" -delete \
+  && find "${BUNDLE_PATH}" -name "*.o" -delete
+
+# Copy scripts and make them executable
+COPY scripts/wait-for-db.sh /usr/bin/wait-for-db
+COPY scripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+RUN chmod +x /usr/bin/wait-for-db /usr/bin/docker-entrypoint.sh
+
+# Copy application code (exclude frontend and unnecessary files)
+COPY . .
+RUN rm -rf app/frontend \
+  && rm -rf test \
+  && rm -rf tmp/cache \
+  && rm -rf log/* \
+  && rm -rf node_modules
+
+# Install puppeteer locally for PDF generation AFTER copying application
+RUN npm_config_loglevel=error npm install --no-save puppeteer \
+  && npm cache clean --force
+
+# Create necessary directories and set permissions
+RUN mkdir -p tmp/pids tmp/cache storage log \
+  && chown -R appuser:appuser /app \
+  && chmod -R 755 tmp storage log
+
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+
+# Start command with proper signal handling  
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]

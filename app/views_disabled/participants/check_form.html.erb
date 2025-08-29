@@ -1,0 +1,85 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold mb-2">Cek Status Pendaftaran</h1>
+    <h2 class="text-lg text-gray-600 mb-6"><%= @event.name %></h2>
+
+    <% if flash[:alert] %>
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <%= form_with(url: check_registration_event_path(@event), method: :post, local: true, data: { turbo: false }, class: "space-y-6") do |f| %>
+      <div class="space-y-2">
+        <%= f.label :nik, "NIK (Nomor KTP)", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :nik, 
+            class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            required: true, 
+            pattern: "[0-9]{16}", 
+            title: "NIK harus 16 digit angka" %>
+        <p class="text-sm text-gray-500">Masukkan 16 digit NIK sesuai KTP</p>
+      </div>
+
+      <div class="space-y-2">
+        <%= f.label :phone_number, "Nomor Telepon", class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_field :phone_number, 
+            class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            required: true,
+            pattern: "[0-9]{10,13}",
+            title: "Nomor telepon harus 10-13 digit angka" %>
+        <p class="text-sm text-gray-500">Masukkan nomor telepon yang terdaftar</p>
+      </div>
+
+      <div class="space-y-2">
+        <%= f.label :captcha, "Verifikasi Keamanan", class: "block text-sm font-medium text-gray-700" %>
+        <div class="flex items-center space-x-4">
+          <span id="captcha-text" class="px-4 py-2 bg-gray-100 rounded font-mono text-lg select-none">
+            <%= session[:captcha] = SecureRandom.hex(2) %>
+          </span>
+          <button type="button" onclick="refreshCaptcha()" class="text-blue-500 hover:text-blue-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        <%= f.text_field :captcha_input, 
+            class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+            required: true,
+            placeholder: "Masukkan kode di atas" %>
+      </div>
+
+      <div class="flex items-center justify-between pt-4">
+        <%= f.submit "Cek Status", class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" %>
+        <%= link_to "Kembali", event_path(@event), class: "text-blue-500 hover:text-blue-700" %>
+      </div>
+    <% end %>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900">Belum Mendaftar?</h3>
+      <p class="mt-2 text-sm text-gray-600">Silakan mendaftar melalui form pendaftaran:</p>
+      <%= link_to "Form Pendaftaran", new_event_participant_path(@event), class: "mt-3 inline-block bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+  </div>
+</div>
+
+<script>
+function refreshCaptcha() {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  
+  fetch('<%= refresh_captcha_event_path(@event) %>', { 
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken,
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById('captcha-text').textContent = data.captcha;
+  })
+  .catch(error => {
+    console.error('Error refreshing captcha:', error);
+  });
+}
+</script>

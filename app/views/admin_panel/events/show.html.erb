@@ -1,0 +1,244 @@
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Detail Event</h1>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-3">
+      <%= link_to "Edit Event", edit_admin_panel_event_path(@event), class: "inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+      <%= link_to "Kembali", admin_panel_events_path, class: "inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <div class="relative">
+        <% if @event.banner.attached? %>
+          <div class="aspect-[3/1] w-full">
+            <%= image_tag @event.banner, class: "h-full w-full object-cover" %>
+          </div>
+        <% end %>
+        <div class="<%= @event.banner.attached? ? 'absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-6' : 'p-6' %>">
+          <div class="flex items-center justify-between">
+            <h3 class="<%= @event.banner.attached? ? 'text-white' : 'text-gray-900' %> text-2xl font-bold leading-6">
+              <%= @event.name %>
+              <% if @event.category == 'main' %>
+                <span class="ml-2 inline-flex items-center rounded-md bg-blue-100 px-2.5 py-0.5 text-sm font-medium text-blue-800">
+                  Event Utama
+                </span>
+              <% end %>
+            </h3>
+            <p class="<%= @event.banner.attached? ? 'text-white' : 'text-gray-500' %> text-sm">
+              Dibuat oleh <%= @event.creator.present? ? @event.creator.email : 'Admin Dihapus' %>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Tanggal Event</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= l @event.event_date, format: :long %></dd>
+          </div>
+
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Lokasi</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @event.location.presence || '-' %></dd>
+          </div>
+
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Status Pendaftaran</dt>
+            <dd class="mt-1 text-sm">
+              <% status_color = case @event.registration_status
+                   when 'Pendaftaran dibuka' then 'green'
+                   when 'Pendaftaran akan dibuka' then 'yellow'
+                   when 'Pendaftaran sudah ditutup' then 'red'
+                   when 'Pendaftaran ditutup (Kuota Penuh)' then 'red'
+                   else 'gray'
+                 end %>
+              <span class="inline-flex items-center rounded-md bg-<%= status_color %>-100 px-2.5 py-0.5 text-sm font-medium text-<%= status_color %>-800">
+                <%= @event.registration_status %>
+              </span>
+              <% if @event.registration_start.present? && @event.registration_end.present? %>
+                <p class="mt-1 text-gray-500">
+                  <%= l @event.registration_start, format: :short %> - <%= l @event.registration_end, format: :short %>
+                </p>
+              <% end %>
+            </dd>
+          </div>
+
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Jumlah Peserta</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              <%= @event.participants.count %>
+              <% if @event.max_participants.present? %>
+                <span class="text-gray-500">/ <%= @event.max_participants %></span>
+                <div class="mt-2 h-2 w-full rounded-full bg-gray-200">
+                  <% percentage = (@event.participants.count.to_f / @event.max_participants * 100).round %>
+                  <div class="h-2 rounded-full <%= percentage >= 100 ? 'bg-red-600' : 'bg-blue-600' %>" style="width: <%= percentage %>%"></div>
+                </div>
+              <% end %>
+            </dd>
+          </div>
+
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Contact Person</dt>
+            <dd class="mt-2 text-sm text-gray-900">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                  <p class="font-medium">Contact Person 1:</p>
+                  <p><%= @event.contact_person1_name.present? ? @event.contact_person1_name : '-' %></p>
+                  <% if @event.contact_person1_phone.present? %>
+                    <p class="mt-1">
+                      <a href="tel:<%= @event.contact_person1_phone %>" class="text-blue-600 hover:text-blue-800">
+                        <%= format_phone_number(@event.contact_person1_phone) %>
+                      </a>
+                    </p>
+                  <% end %>
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-lg">
+                  <p class="font-medium">Contact Person 2:</p>
+                  <p><%= @event.contact_person2_name.present? ? @event.contact_person2_name : '-' %></p>
+                  <% if @event.contact_person2_phone.present? %>
+                    <p class="mt-1">
+                      <a href="tel:<%= @event.contact_person2_phone %>" class="text-blue-600 hover:text-blue-800">
+                        <%= format_phone_number(@event.contact_person2_phone) %>
+                      </a>
+                    </p>
+                  <% end %>
+                </div>
+              </div>
+            </dd>
+          </div>
+
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Deskripsi</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @event.description.presence || '-' %></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h2 class="text-xl font-semibold text-gray-900">Daftar Hadiah</h2>
+        <p class="mt-2 text-sm text-gray-700">Kelola hadiah-hadiah yang tersedia untuk event ini.</p>
+      </div>
+      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+        <%= link_to "Kelola Hadiah", event_prizes_path(@event), class: "inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nama Hadiah</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Kategori</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Jumlah</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Pemenang</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <% @event.prizes.ordered_by_category.each do |prize| %>
+              <tr>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                  <div class="font-medium text-gray-900"><%= prize.name %></div>
+                  <div class="text-gray-500"><%= prize.description %></div>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <%= prize.category %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <%= prize.quantity %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm">
+                  <% if prize.winnings.any? %>
+                    <span class="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      Sudah Diundi
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      Belum Diundi
+                    </span>
+                  <% end %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <% if prize.winnings.any? %>
+                    <% prize.winnings.includes(:participant).each_with_index do |winning, index| %>
+                      <%= winning.participant.name %> (No. <%= winning.participant.registration_number %>)<%= ", " if index < prize.winnings.size - 1 %>
+                    <% end %>
+                  <% else %>
+                    -
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h2 class="text-xl font-semibold text-gray-900">Daftar Peserta</h2>
+        <p class="mt-2 text-sm text-gray-700">Kelola peserta yang terdaftar dalam event ini.</p>
+      </div>
+      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                <%= link_to "Kelola Peserta", admin_panel_event_participants_path(@event), class: "inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-300">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">No. Peserta</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nama</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <% @event.participants.order(:participant_number).each do |participant| %>
+              <tr>
+                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                  <%= participant.participant_number %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <%= participant.name %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <%= participant.email %>
+                </td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm">
+                  <% if participant.winnings.any? %>
+                    <span class="inline-flex items-center rounded-md bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                      Menang
+                    </span>
+                  <% elsif @event.forfeitures.exists?(participant: participant) %>
+                    <span class="inline-flex items-center rounded-md bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
+                      Diskualifikasi
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      Terdaftar
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 

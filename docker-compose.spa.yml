@@ -1,0 +1,137 @@
+services:
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-doorprize_app_production}
+      POSTGRES_USER: ${DATABASE_USER:-dhan}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-elza}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-dhan} -d ${DATABASE_NAME:-doorprize_app_production}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    env_file: .env
+    environment:
+      RAILS_ENV: production
+      RAILS_SERVE_STATIC_FILES: "false"
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-8}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-3}
+      PUMA_MAX_THREADS: ${PUMA_MAX_THREADS:-8}
+      PUMA_MIN_THREADS: ${PUMA_MIN_THREADS:-2}
+      DATABASE_POOL: ${DATABASE_POOL:-25}
+      PUMA_PRELOAD_APP: "true"
+      # Redis configuration
+      REDIS_URL: redis://redis:6379/0
+      # Database URL
+      DATABASE_URL: postgresql://${DATABASE_USER:-dhan}:${DATABASE_PASSWORD:-elza}@db:5432/${DATABASE_NAME:-doorprize_app_production}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./log:/app/log
+      - ./storage:/app/storage
+      - ./tmp:/app/tmp
+    restart: unless-stopped
+    command: >
+      bash -c "
+        wait-for-db db &&
+        bundle exec rails db:create db:migrate &&
+        exec bundle exec puma -C config/puma.rb
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 60s
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.spa
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    ports:
+      - "80:80"  # NPM forwards to port 80
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./storage:/usr/share/nginx/html/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/health || exit 1"]
+      interval: 30s
+      retries: 3
+      timeout: 10s
+      start_period: 30s
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,184 @@
+<%# app/views/admin_panel/admins/edit.html.erb %>
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Edit Profil</h1>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <%= link_to "Kembali", admin_panel_admin_path(@admin), class: "inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <%= form_with(model: @admin, url: admin_panel_admin_path(@admin), method: :patch, class: "space-y-6") do |f| %>
+      <% if @admin.errors.any? %>
+        <div class="bg-red-50 p-4 rounded-lg">
+          <h2 class="text-red-800 text-sm font-medium"><%= pluralize(@admin.errors.count, "error") %> ditemukan:</h2>
+          <ul class="mt-2 text-red-700 text-sm list-disc list-inside">
+            <% @admin.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
+        <div class="md:grid md:grid-cols-3 md:gap-6">
+          <div class="md:col-span-1">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Informasi Profil</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Informasi ini akan ditampilkan pada event yang Anda buat.
+            </p>
+          </div>
+
+          <div class="mt-5 space-y-6 md:col-span-2 md:mt-0">
+            <div>
+              <%= f.label :name, "Nama", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.text_field :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+            </div>
+
+            <div>
+              <%= f.label :email, "Email", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.email_field :email, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <%= f.submit "Simpan Perubahan", class: "ml-3 inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .admin-edit {
+      padding: 20px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .admin-form {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .form-check {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .form-check-input {
+      margin-right: 8px;
+    }
+
+    .form-check-label {
+      margin-bottom: 0;
+    }
+
+    .form-text {
+      display: block;
+      margin-top: 5px;
+      color: #6c757d;
+      font-size: 12px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .error-messages {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .error-messages h2 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .error-messages ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      user-select: none;
+      border: 1px solid transparent;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .btn-primary {
+      color: #fff;
+      background-color: #4CAF50;
+      border-color: #4CAF50;
+    }
+    
+    .btn-primary:hover {
+      background-color: #45a049;
+      border-color: #45a049;
+    }
+    
+    .btn-secondary {
+      color: #333;
+      background-color: #e9ecef;
+      border-color: #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #dde2e6;
+      border-color: #dde2e6;
+    }
+  </style>
+<% end %> 

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kartu Peserta <%= @participant.name %></title>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    /* Smartphone-sized card - portrait orientation */
+    @page { 
+      size: 10cm 18cm; 
+      margin: 0; 
+      background: white; 
+    }
+
+    html, body { 
+      width: 10cm; 
+      height: 18cm; 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden;
+      font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    }
+
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body {
+      background: #f8fafc;
+      height: 18cm;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding: 10px;
+    }
+
+    /* Modern card container */
+    .card-container {
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header dengan banner event */
+    .card-header {
+      position: relative;
+      height: 5.5cm;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    .banner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+    }
+
+    .banner-overlay::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.85) 0%, rgba(118, 75, 162, 0.85) 100%);
+      z-index: 1;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      width: 100%;
+    }
+
+    .card-badge {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .event-name {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      line-height: 1.2;
+    }
+
+    /* Nomor registrasi yang mencolok */
+    .registration-highlight {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #ff9ff3 100%);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      border: 4px solid white;
+    }
+
+    .registration-number {
+      font-size: 1.3rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      margin: 0;
+    }
+
+    .registration-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      opacity: 0.9;
+      margin-bottom: 2px;
+    }
+
+    /* Body content */
+    .card-body {
+      flex: 1;
+      padding: 50px 25px 20px 25px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .participant-info {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      flex: 1;
+    }
+
+    .participant-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 15px;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .info-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.85rem;
+      width: 70px;
+      flex-shrink: 0;
+    }
+
+    .info-value {
+      flex: 1;
+      font-weight: 500;
+      color: #1f2937;
+      word-break: break-word;
+      font-size: 0.85rem;
+      text-align: right;
+    }
+
+    .nik-value {
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    /* Footer dengan QR dan info event */
+    .card-footer {
+      padding: 15px 25px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      height: auto;
+      min-height: 2.8cm;
+    }
+
+    .event-details {
+      flex: 1;
+      font-size: 0.75rem;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .event-details strong {
+      color: #374151;
+      font-weight: 600;
+    }
+
+    .event-details p {
+      margin-bottom: 5px;
+    }
+
+    .validity-note {
+      margin-top: 8px;
+      font-style: italic;
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .qr-code {
+      width: 55px;
+      height: 55px;
+      background: white;
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #e5e7eb;
+    }
+
+    .qr-code svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .qr-label {
+      font-size: 0.65rem;
+      color: #9ca3af;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Decorative elements */
+    .card-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card-container::after {
+      content: '';
+      position: absolute;
+      bottom: -50%;
+      left: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(118, 75, 162, 0.1) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Ensure content is above decorative elements */
+    .card-header, .card-body, .card-footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Print optimizations */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .card-container {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <!-- Nomor Registrasi Mencolok -->
+    <div class="registration-highlight">
+      <div class="registration-label">No. Peserta</div>
+      <div class="registration-number"><%= @participant.registration_number %></div>
+    </div>
+
+    <!-- Header dengan Banner Event -->
+    <div class="card-header">
+      <% if @banner_data_uri %>
+        <div class="banner-overlay" style="background-image: url('<%= @banner_data_uri %>');"></div>
+      <% end %>
+      
+      <div class="header-content">
+        <div class="card-badge">Kartu Peserta</div>
+        <div class="event-name"><%= @event.name %></div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body">
+      <div class="participant-info">
+        <div class="participant-name"><%= @participant.name %></div>
+        
+        <div class="info-grid">
+          <div class="info-row">
+            <span class="info-label">NIK</span>
+            <span class="info-value nik-value"><%= @participant.nik %></span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Telepon</span>
+            <span class="info-value"><%= @participant.phone_number %></span>
+          </div>
+          
+          <% if @participant.institution.present? %>
+            <div class="info-row">
+              <span class="info-label">Instansi</span>
+              <span class="info-value"><%= @participant.institution %></span>
+            </div>
+          <% end %>
+          
+          <% if @participant.email.present? %>
+            <div class="info-row">
+              <span class="info-label">Email</span>
+              <span class="info-value" style="font-size: 0.75rem;"><%= @participant.email %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="event-details">
+        <p><strong>Tanggal:</strong> <%= @event.event_date ? @event.event_date.strftime('%d %b %Y') : '-' %></p>
+        <p><strong>Lokasi:</strong> <%= @event.location && @event.location.length > 25 ? @event.location[0..22] + '...' : @event.location || '-' %></p>
+        <div class="validity-note">
+          ✓ Kartu peserta sah
+        </div>
+      </div>
+      
+      <div class="qr-section">
+        <div class="qr-code">
+          <%= @qr_code_svg.html_safe %>
+        </div>
+        <div class="qr-label">Scan</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

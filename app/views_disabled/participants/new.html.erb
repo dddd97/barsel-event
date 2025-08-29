@@ -1,0 +1,94 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <div class="mb-6">
+          <h3 class="text-lg font-medium leading-6 text-gray-900">Pendaftaran Peserta</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Silakan lengkapi form pendaftaran untuk event <%= @event.name %>
+          </p>
+        </div>
+
+        <%= form_with(model: [@event, @participant], local: true, class: "space-y-6") do |f| %>
+          <% if @participant.errors.any? %>
+            <div class="rounded-md bg-red-50 p-4">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-red-800">
+                    Ada <%= pluralize(@participant.errors.count, "error") %> yang perlu diperbaiki:
+                  </h3>
+                  <div class="mt-2 text-sm text-red-700">
+                    <ul class="list-disc space-y-1 pl-5">
+                      <% @participant.errors.full_messages.each do |message| %>
+                        <li><%= message %></li>
+                      <% end %>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <div>
+            <%= f.label :name, "Nama Lengkap", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.text_field :name, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", required: true %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :nik, "NIK (Nomor KTP)", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.text_field :nik, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", required: true, pattern: "[0-9]{16}", title: "NIK harus 16 digit angka" %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :email, "Email", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.email_field :email, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+              <p class="mt-1 text-xs text-gray-500">Opsional. Digunakan untuk mengirim konfirmasi pendaftaran.</p>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :phone_number, "Nomor Telepon", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.telephone_field :phone_number, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm", required: true %>
+            </div>
+          </div>
+
+          <div>
+            <%= f.label :institution, "Institusi", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1">
+              <%= f.text_field :institution, class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" %>
+              <p class="mt-1 text-xs text-gray-500">Opsional. Nama perusahaan atau institusi Anda.</p>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <% if Recaptcha.configuration.site_key.present? %>
+              <%= recaptcha_tags %>
+            <% else %>
+              <div class="p-4 bg-yellow-50 rounded-md">
+                <p class="text-sm text-yellow-700">
+                  reCAPTCHA belum dikonfigurasi. Silakan hubungi administrator.
+                </p>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="flex justify-end space-x-3">
+            <%= link_to "Batal", event_path(@event), class: "rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+            <%= f.submit "Daftar", class: "rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

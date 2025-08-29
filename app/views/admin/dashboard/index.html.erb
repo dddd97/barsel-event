@@ -1,0 +1,123 @@
+<div class="admin-dashboard">
+  <h1>Dashboard Admin</h1>
+  
+  <div class="dashboard-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div class="stat-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Total Events</h3>
+      <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #007bff;"><%= @total_events %></p>
+    </div>
+    
+    <div class="stat-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Total Peserta</h3>
+      <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #28a745;"><%= @total_participants %></p>
+    </div>
+    
+    <div class="stat-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Total Hadiah</h3>
+      <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #fd7e14;"><%= @total_prizes %></p>
+    </div>
+    
+    <div class="stat-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Hadiah Terundi</h3>
+      <p style="font-size: 2rem; font-weight: bold; margin: 0; color: #dc3545;"><%= @awarded_prizes %></p>
+    </div>
+  </div>
+
+  <div class="dashboard-charts" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px;">
+    <div class="chart-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Statistik Event</h3>
+      <div id="eventChart" style="height: 300px;"></div>
+    </div>
+  </div>
+
+  <div class="dashboard-tables">
+    <div class="table-card" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <h3 style="margin-top: 0; color: #343a40;">Daftar Event</h3>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background-color: #e9ecef;">
+            <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Nama Event</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Tanggal</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Jumlah Peserta</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Jumlah Hadiah</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Hadiah Terundi</th>
+            <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @event_stats.each do |stat| %>
+            <tr>
+              <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><%= stat[:name] %></td>
+              <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">
+                <%= Event.find(stat[:id]).event_date&.strftime("%d %b %Y") %>
+              </td>
+              <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= stat[:participants_count] %></td>
+              <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= stat[:prizes_count] %></td>
+              <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= stat[:awarded_prizes_count] %></td>
+              <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">
+                <%= link_to "Detail", event_path(stat[:id]), class: "button-secondary", style: "padding: 5px 10px; font-size: 0.8rem;" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Tambahkan Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Data untuk chart
+    const eventNames = <%= raw @event_stats.map { |stat| stat[:name] }.to_json %>;
+    const participantCounts = <%= raw @event_stats.map { |stat| stat[:participants_count] }.to_json %>;
+    const prizeCounts = <%= raw @event_stats.map { |stat| stat[:prizes_count] }.to_json %>;
+    const awardedPrizeCounts = <%= raw @event_stats.map { |stat| stat[:awarded_prizes_count] }.to_json %>;
+    
+    // Buat chart
+    const ctx = document.getElementById('eventChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: eventNames,
+          datasets: [
+            {
+              label: 'Jumlah Peserta',
+              data: participantCounts,
+              backgroundColor: 'rgba(40, 167, 69, 0.7)',
+              borderColor: 'rgb(40, 167, 69)',
+              borderWidth: 1
+            },
+            {
+              label: 'Total Hadiah',
+              data: prizeCounts,
+              backgroundColor: 'rgba(253, 126, 20, 0.7)',
+              borderColor: 'rgb(253, 126, 20)',
+              borderWidth: 1
+            },
+            {
+              label: 'Hadiah Terundi',
+              data: awardedPrizeCounts,
+              backgroundColor: 'rgba(220, 53, 69, 0.7)',
+              borderColor: 'rgb(220, 53, 69)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+  });
+</script> 

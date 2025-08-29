@@ -1,0 +1,203 @@
+<%# app/views/admin_panel/prizes/edit.html.erb %>
+<div class="prizes-admin">
+  <div class="page-header">
+    <h1>Edit Hadiah - <%= @event.name %></h1>
+  </div>
+
+  <div class="edit-form">
+    <%= form_with model: [:admin_panel, @event, @prize], local: true, form: { multipart: true } do |f| %>
+      <% if @prize.errors.any? %>
+        <div class="error-messages">
+          <h2><%= pluralize(@prize.errors.count, "error") %> prohibited this prize from being saved:</h2>
+          <ul>
+            <% @prize.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= f.label :name, "Nama Hadiah" %>
+        <%= f.text_field :name, class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :description, "Deskripsi" %>
+        <%= f.text_area :description, class: "form-control", rows: 3 %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :quantity, "Jumlah Hadiah" %>
+        <div class="quantity-control">
+          <button type="button" class="btn-quantity" data-action="decrement">-</button>
+          <%= f.number_field :quantity, class: "form-control quantity-input", min: 1 %>
+          <button type="button" class="btn-quantity" data-action="increment">+</button>
+        </div>
+        <small class="form-text text-muted">Jumlah unit hadiah yang tersedia.</small>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :image, "Gambar Hadiah" %>
+        <% if @prize.image.attached? %>
+          <div class="current-image">
+            <p>Gambar saat ini:</p>
+            <% begin %>
+              <%= image_tag @prize.image.variant(resize_to_limit: [200, 200]), class: "prize-image-preview" %>
+            <% rescue => e %>
+              <p class="text-danger">Error: <%= e.message %></p>
+            <% end %>
+          </div>
+        <% end %>
+        <%= f.file_field :image, class: "form-control", accept: "image/png, image/jpeg", direct_upload: true %>
+        <small class="form-text text-muted">Format yang diizinkan: PNG, JPEG. Ukuran maksimal: 5MB.</small>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Simpan", class: "btn btn-primary" %>
+        <%= link_to "Batal", admin_panel_event_prizes_path(@event), class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .prizes-admin {
+      padding: 20px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .edit-form {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .error-messages {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .error-messages h2 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .error-messages ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .current-image {
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+
+    .prize-image-preview {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 4px;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .text-danger {
+      color: #dc3545;
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+    }
+
+    .quantity-input {
+      width: 80px;
+      text-align: center;
+      margin: 0 10px;
+    }
+
+    .btn-quantity {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-quantity:hover {
+      background-color: #e9ecef;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Quantity control buttons
+      document.querySelectorAll('.btn-quantity').forEach(function(button) {
+        button.addEventListener('click', function() {
+          const input = this.parentNode.querySelector('.quantity-input');
+          const currentValue = parseInt(input.value, 10);
+          
+          if (this.dataset.action === 'increment') {
+            input.value = currentValue + 1;
+          } else if (this.dataset.action === 'decrement' && currentValue > 1) {
+            input.value = currentValue - 1;
+          }
+        });
+      });
+    });
+  </script>
+<% end %> 

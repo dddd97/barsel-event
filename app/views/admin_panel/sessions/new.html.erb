@@ -1,0 +1,99 @@
+<%# app/views/admin_panel/sessions/new.html.erb %>
+<div class="login-container">
+  <div class="login-form">
+    <h1>Admin Login</h1>
+    
+    <%= form_with url: admin_panel_login_path, method: :post, local: true do |f| %>
+      <div class="form-group">
+        <%= f.label :email %>
+        <%= f.email_field :email, class: "form-control", required: true, autofocus: true %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :password %>
+        <%= f.password_field :password, class: "form-control", required: true %>
+      </div>
+      
+      <div class="form-actions">
+        <%= f.submit "Login", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 70vh;
+    }
+    
+    .login-form {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .login-form h1 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #555;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    
+    .form-actions {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    
+    .btn {
+      display: inline-block;
+      font-weight: 500;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      user-select: none;
+      border: 1px solid transparent;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+      cursor: pointer;
+    }
+    
+    .btn-primary {
+      color: #fff;
+      background-color: #4CAF50;
+      border-color: #4CAF50;
+    }
+    
+    .btn-primary:hover {
+      background-color: #45a049;
+      border-color: #45a049;
+    }
+  </style>
+<% end %> 

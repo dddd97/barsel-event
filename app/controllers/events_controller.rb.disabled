@@ -1,0 +1,55 @@
+class EventsController < ApplicationController
+  before_action :set_event, only: [:show, :winners]
+
+  def index
+    @events = Event.ordered_by_category
+  end
+
+  def show
+    # @event already set by before_action
+    @prizes = @event.prizes.ordered_by_category
+    @participants_count = @event.participants.count
+    @prizes_count = @event.prizes.sum(:quantity)
+    @awarded_prizes_count = @event.winnings.count
+  end
+
+  def new
+    @event = Event.new
+  end
+
+  def create
+    @event = Event.new(event_params)
+    @event.creator = current_admin
+    
+    if @event.save
+      redirect_to @event, notice: 'Event berhasil dibuat.'
+    else
+      render :new
+    end
+  end
+
+  def winners
+    @prizes = @event.prizes.includes(winnings: :participant).where.not(winnings: { id: nil }).ordered_by_category
+    
+    respond_to do |format|
+      format.html
+      format.pdf do
+        pdf_data = WinnerListPdf.new(@prizes, @event).render
+        send_data pdf_data,
+                  filename: "pemenang_#{@event.name.parameterize}.pdf",
+                  type: 'application/pdf',
+                  disposition: 'inline'
+      end
+    end
+  end
+
+  private
+
+  def set_event
+    @event = Event.includes(:creator).find(params[:id])
+  end
+
+  def event_params
+    params.require(:event).permit(:name, :event_date, :start_time, :description, :category)
+  end
+end

@@ -1,0 +1,98 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-2xl font-bold mb-2">Status Pendaftaran</h1>
+    <h2 class="text-lg text-gray-600 mb-6"><%= @event.name %></h2>
+
+    <div class="space-y-4">
+      <div class="bg-green-50 border-l-4 border-green-400 p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-green-700">
+              Terdaftar sebagai peserta
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 pt-4">
+        <dl class="divide-y divide-gray-200">
+          <div class="py-3 flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Nama</dt>
+            <dd class="text-sm text-gray-900"><%= @participant.name %></dd>
+          </div>
+          
+          <div class="py-3 flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Nomor Peserta</dt>
+            <dd class="text-sm font-mono text-gray-900"><%= @participant.registration_number %></dd>
+          </div>
+
+          <div class="py-3 flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">NIK</dt>
+            <dd class="text-sm font-mono text-gray-900">
+              <%= "#{@participant.nik[0,4]}#{'*' * 8}#{@participant.nik[-4,4]}" %>
+            </dd>
+          </div>
+
+          <div class="py-3 flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Nomor Telepon</dt>
+            <dd class="text-sm font-mono text-gray-900">
+              <%= "#{@participant.phone_number[0,4]}#{'*' * (@participant.phone_number.length - 6)}#{@participant.phone_number[-2,2]}" %>
+            </dd>
+          </div>
+
+          <div class="py-3 flex justify-between">
+            <dt class="text-sm font-medium text-gray-500">Tanggal Pendaftaran</dt>
+            <dd class="text-sm text-gray-900"><%= @participant.created_at.strftime('%d %B %Y') %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="mt-6 border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Kartu Peserta Digital</h3>
+        <%= link_to download_card_event_participant_path(@event, @participant, format: :pdf), 
+                    class: "w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+                    target: "_blank" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Unduh Kartu Peserta
+        <% end %>
+      </div>
+
+      <% if @participant.won_prizes.any? %>
+        <div class="mt-6 border-t border-gray-200 pt-6">
+          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <!-- Heroicon name: solid/exclamation -->
+                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 011-1h.008a1 1 0 011 1v3.667a1 1 0 01-2 0V5z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                  Selamat, Anda memenangkan hadiah berikut:
+                </p>
+                <ul class="mt-2 list-disc list-inside text-sm text-yellow-800">
+                  <% @participant.won_prizes.each do |prize| %>
+                    <li><%= prize.name %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="mt-6 flex justify-between">
+        <%= link_to "Cek Peserta Lain", check_registration_event_path(@event), class: "text-blue-500 hover:text-blue-700" %>
+        <%= link_to "Kembali ke Event", event_path(@event), class: "text-blue-500 hover:text-blue-700" %>
+      </div>
+    </div>
+  </div>
+</div>

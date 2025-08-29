@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kartu Peserta - <%= event.name %></title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    /* Force one-page A6 layout for PDF */
+    @page { size: 9cm 16cm; margin: 0; }
+
+    html, body { 
+      width: 9cm; 
+      height: 16cm; 
+      margin: 0; 
+      padding: 0; 
+      overflow: hidden; /* Prevent any overflow */
+    }
+
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #ffffff;
+      height: 16cm;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .card-container {
+      width: 9cm;
+      height: 16cm;
+      background: white;
+      border-radius: 20px;
+      box-shadow: none;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    
+    /* Header dengan gradient dan banner - lebih kompak */
+    .card-header {
+      position: relative;
+      height: 4.2cm; /* Fixed height instead of percentage */
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+      flex-shrink: 0; /* Don't allow shrinking */
+    }
+    
+    .card-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+    }
+    
+    .header-content {
+      position: relative;
+      z-index: 2;
+      padding: 12px; /* Reduced padding */
+    }
+    
+    .event-name {
+      font-size: 1.2rem; /* Slightly smaller */
+      font-weight: 800;
+      margin-bottom: 6px; /* Reduced margin */
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      line-height: 1.1;
+    }
+    
+    .card-title {
+      font-size: 0.8rem; /* Smaller */
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.9;
+      margin-bottom: 10px; /* Reduced margin */
+    }
+    
+    .registration-number {
+      background: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
+      padding: 6px 12px; /* Reduced padding */
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 1rem; /* Slightly smaller */
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transform: rotate(-1deg);
+    }
+    
+    /* Body content - more flexible */
+    .card-body {
+      flex: 1; /* Take remaining space */
+      padding: 14px; /* Reduced padding */
+      display: flex;
+      flex-direction: column;
+      min-height: 0; /* Allow shrinking */
+    }
+    
+    .participant-info {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 12px; /* Slightly smaller radius */
+      padding: 14px; /* Reduced padding */
+      margin-bottom: 12px; /* Reduced margin */
+      border: 1px solid #e2e8f0;
+      flex: 1;
+    }
+    
+    .info-row { 
+      display: flex; 
+      align-items: flex-start; 
+      justify-content: space-between; 
+      margin-bottom: 8px; /* Reduced margin */
+      line-height: 1.3;
+    }
+    
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .info-label { 
+      width: 80px; /* Reduced width */
+      font-weight: 600; 
+      color: #64748b; 
+      flex-shrink: 0; 
+      font-size: 0.85rem; /* Smaller font */
+    }
+    
+    .info-value { 
+      flex: 1; 
+      font-weight: 500; 
+      color: #1f2937; 
+      word-break: break-word;
+      font-size: 0.85rem; /* Smaller font */
+      margin-left: 8px;
+    }
+    
+    .nik-value {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: #dc2626;
+    }
+    
+    /* Footer dengan QR dan event info - tidak absolute positioning */
+    .card-footer {
+      flex-shrink: 0; /* Don't allow shrinking */
+      padding: 8px 14px; /* Compact padding */
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      height: 3.2cm; /* Fixed height */
+    }
+    
+    .event-details {
+      flex: 1;
+      font-size: 0.7rem; /* Smaller font */
+      color: #6b7280;
+      line-height: 1.3;
+    }
+    
+    .event-details strong {
+      color: #374151;
+      font-weight: 600;
+    }
+    
+    .event-details p {
+      margin-bottom: 4px; /* Reduced margin */
+    }
+    
+    .qr-section {
+      flex-shrink: 0; /* Don't shrink */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .qr-code {
+      width: 48px; /* Slightly smaller */
+      height: 48px;
+      background: white;
+      border-radius: 6px;
+      padding: 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .qr-code svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .qr-label { 
+      font-size: 0.6rem;
+      color: #9ca3af;
+      text-align: center;
+    }
+    
+    /* Watermark */
+    .watermark { display: none !important; }
+    
+    /* Responsive untuk print */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      
+      .card-container {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+      }
+    }
+    
+    /* Responsive untuk layar kecil */
+    @media (max-width: 768px) {
+      .card-container {
+        width: 100%;
+        max-width: 400px;
+        height: auto;
+        min-height: 600px; /* Adjusted for mobile */
+        border-radius: 0;
+      }
+      
+      .card-header {
+        height: auto;
+        min-height: 140px;
+        padding: 20px;
+      }
+      
+      .event-name {
+        font-size: 1.3rem;
+      }
+      
+      .card-title {
+        font-size: 0.9rem;
+      }
+      
+      .card-body {
+        padding: 20px;
+      }
+      
+      .participant-info {
+        padding: 18px;
+      }
+      
+      .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      
+      .info-label {
+        width: auto;
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+      }
+      
+      .info-value {
+        font-size: 0.9rem;
+        margin-left: 0;
+      }
+      
+      .card-footer {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        height: auto;
+        padding: 20px;
+      }
+      
+      .event-details {
+        text-align: center;
+        font-size: 0.8rem;
+      }
+      
+      .qr-code {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <!-- Header -->
+    <div class="card-header" style="<%= banner_data_uri ? "background-image: url('#{banner_data_uri}'); background-size: cover; background-position: center;" : '' %>">
+      <div class="header-content">
+        <h1 class="event-name"><%= event.name %></h1>
+        <div class="card-title">Kartu Peserta</div>
+        <div class="registration-number"><%= participant.registration_number %></div>
+      </div>
+    </div>
+    
+    <!-- Body -->
+    <div class="card-body">
+      <!-- Participant Info -->
+      <div class="participant-info">
+        <div class="info-row">
+          <span class="info-label">Nama:</span>
+          <span class="info-value"><%= participant.name %></span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">NIK:</span>
+          <span class="info-value nik-value">
+            <%= participant.nik.length > 8 ? 
+                participant.nik[0..3] + '****' + participant.nik[-4..-1] : 
+                participant.nik %>
+          </span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Telepon:</span>
+          <span class="info-value"><%= participant.phone_number %></span>
+        </div>
+        
+        <% if participant.institution.present? %>
+          <div class="info-row">
+            <span class="info-label">Instansi:</span>
+            <span class="info-value"><%= participant.institution %></span>
+          </div>
+        <% end %>
+        
+        <% if participant.email.present? %>
+          <div class="info-row">
+            <span class="info-label">Email:</span>
+            <span class="info-value"><%= participant.email %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="event-details">
+        <p><strong>Tanggal:</strong> <%= event.event_date ? event.event_date.strftime('%d %b %Y') : '-' %></p>
+        <p><strong>Lokasi:</strong> <%= event.location && event.location.length > 30 ? event.location[0..27] + '...' : event.location || '-' %></p>
+        <p style="margin-top: 6px; font-style: italic; color: #9ca3af;">
+          Bukti pendaftaran sah
+        </p>
+      </div>
+      
+      <div class="qr-section">
+        <div class="qr-code">
+          <%= qr_code_svg.html_safe %>
+        </div>
+        <div class="qr-label">QR</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

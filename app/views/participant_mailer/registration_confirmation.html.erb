@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #3b82f6;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+    }
+    .content {
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+    }
+    .info-item {
+      margin-bottom: 10px;
+    }
+    .info-label {
+      font-weight: bold;
+    }
+    .button {
+      background-color: #3b82f6;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      display: inline-block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Konfirmasi Pendaftaran</h2>
+    </div>
+    
+    <div class="content">
+      <p>Halo <strong><%= @participant.name %></strong>,</p>
+      
+      <p>Terima kasih telah mendaftar di acara <strong><%= @event.name %></strong>.</p>
+      
+      <p>Berikut adalah detail pendaftaran Anda:</p>
+      
+      <div class="info-item">
+        <span class="info-label">Nomor Registrasi:</span> <%= @participant.registration_number %>
+      </div>
+      
+      <div class="info-item">
+        <span class="info-label">Nama:</span> <%= @participant.name %>
+      </div>
+      
+      <% if @participant.institution.present? %>
+      <div class="info-item">
+        <span class="info-label">Institusi:</span> <%= @participant.institution %>
+      </div>
+      <% end %>
+      
+      <div class="info-item">
+        <span class="info-label">Tanggal Acara:</span> <%= @event.event_date&.strftime('%d %B %Y') || 'Akan diumumkan' %>
+      </div>
+      
+      <div class="info-item">
+        <span class="info-label">Lokasi:</span> <%= @event.location || 'Akan diumumkan' %>
+      </div>
+      
+      <p>Harap simpan email ini sebagai referensi. Tunjukkan nomor registrasi Anda saat hadir di acara.</p>
+      
+      <p>Untuk informasi lebih lanjut, silakan kunjungi situs web kami atau hubungi panitia acara.</p>
+      
+      <% if @event.registration_open? %>
+      <p><em>Pendaftaran masih dibuka hingga <%= @event.registration_end&.strftime('%d %B %Y, %H:%M') || 'batas waktu yang akan ditentukan' %>.</em></p>
+      <% end %>
+    </div>
+    
+    <div class="footer">
+      <p>Email ini dibuat secara otomatis. Mohon tidak membalas email ini.</p>
+      <p>&copy; <%= Time.now.year %> <%= @event.name %> - Semua hak dilindungi undang-undang.</p>
+    </div>
+  </div>
+</body>
+</html> 

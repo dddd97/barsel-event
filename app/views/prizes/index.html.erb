@@ -1,0 +1,313 @@
+<div class="prizes-public">
+  <div class="page-header">
+    <h1>Daftar Hadiah - <%= @event.name %></h1>
+  </div>
+
+  <div class="actions">
+    <%= link_to "← Kembali ke Detail Event", event_path(@event), class: "btn btn-link" %>
+    <%= link_to "Lihat Rekap Pemenang", winners_event_path(@event), class: "btn btn-secondary" %>
+  </div>
+
+  <% if @prizes.left_joins(:winnings).where(winnings: { id: nil }).exists? %>
+    <div class="draw-all-action">
+      <%= button_to "Undi Semua Hadiah Sekaligus", 
+                    draw_all_event_prizes_path(@event), 
+                    method: :post, 
+                    class: "btn btn-primary",
+                    data: { confirm: "Yakin ingin mengundi semua hadiah yang tersisa sekaligus?" } %>
+    </div>
+  <% end %>
+
+  <% if @prizes.any? %>
+    <div class="prizes-grid">
+      <% @prizes.each do |prize| %>
+        <% if prize.persisted? %>
+          <div class="prize-card <%= 'main-prize' if prize.category == 'utama' %>">
+            <% if prize.category == 'utama' %>
+              <div class="main-prize-badge">
+                <span>Hadiah Utama</span>
+              </div>
+            <% end %>
+            <div class="prize-image">
+              <% if prize.image.attached? %>
+                <% begin %>
+                  <%= image_tag prize.image.variant(resize_to_limit: [300, 300]) %>
+                <% rescue => e %>
+                  <div class="no-image">
+                    <span class="error-text">Error: <%= e.message %></span>
+                  </div>
+                <% end %>
+              <% else %>
+                <div class="no-image">
+                  <i class="fa fa-gift"></i>
+                </div>
+              <% end %>
+            </div>
+            <div class="prize-info">
+              <h3><%= prize.name %></h3>
+              <% if prize.description.present? %>
+                <p class="description"><%= prize.description %></p>
+              <% end %>
+              
+              <div class="prize-quantity">
+                <span class="quantity-label">Jumlah:</span>
+                <span class="quantity-value"><%= prize.quantity %></span>
+              </div>
+              
+              <div class="prize-status">
+                <% if prize.winnings.any? %>
+                  <span class="badge badge-success">Sudah Diundi</span>
+                  <div class="winner-info">
+                    <% prize.winnings.includes(:participant).each do |winning| %>
+                      <p>Pemenang: <%= winning.participant.name %></p>
+                      <p>No. Peserta: <%= winning.participant.registration_number %></p>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <span class="badge badge-warning">Belum Diundi</span>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="no-prizes">
+      <p>Belum ada hadiah yang ditambahkan untuk event ini.</p>
+    </div>
+  <% end %>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .prizes-public {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 2em;
+      color: #333;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .draw-all-action {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .prizes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .prize-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .prize-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .prize-card.main-prize {
+      border: 2px solid #007bff;
+      transform: scale(1.02);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      z-index: 1;
+    }
+    
+    .prize-card.main-prize:hover {
+      transform: scale(1.04) translateY(-5px);
+    }
+    
+    .main-prize-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #007bff;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 2;
+    }
+
+    .prize-image {
+      height: 200px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f8f9fa;
+    }
+
+    .prize-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .no-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #aaa;
+      font-size: 3em;
+    }
+
+    .prize-info {
+      padding: 20px;
+    }
+
+    .prize-info h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .description {
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .prize-quantity {
+      margin-bottom: 15px;
+    }
+
+    .quantity-label {
+      font-weight: 600;
+    }
+
+    .quantity-value {
+      margin-left: 10px;
+    }
+
+    .prize-status {
+      margin-top: 15px;
+    }
+
+    .winner-info {
+      margin-top: 10px;
+    }
+
+    .winner-info p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    .draw-action {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .badge-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      font-weight: 500;
+      text-align: center;
+      border: none;
+    }
+
+    .btn-link {
+      background: none;
+      color: #007bff;
+      padding: 0;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .no-prizes {
+      text-align: center;
+      padding: 50px 0;
+      color: #666;
+    }
+
+    .error-text {
+      color: #dc3545;
+      font-size: 0.8em;
+    }
+
+    .prize-card.main-prize {
+      border: 2px solid #007bff;
+      transform: scale(1.02);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .main-prize-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #007bff;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    .prize-card.main-prize .prize-info h3 {
+      color: #007bff;
+    }
+
+    .prize-card.main-prize:hover {
+      transform: scale(1.04);
+    }
+  </style>
+<% end %>

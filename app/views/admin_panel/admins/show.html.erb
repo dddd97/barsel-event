@@ -1,0 +1,85 @@
+<div class="px-4 sm:px-6 lg:px-8">
+  <div class="sm:flex sm:items-center">
+    <div class="sm:flex-auto">
+      <h1 class="text-2xl font-semibold text-gray-900">Profil Admin</h1>
+    </div>
+    <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+      <%= link_to "Edit Profil", edit_admin_panel_admin_path(@admin), class: "inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto" %>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Nama</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @admin.name %></dd>
+          </div>
+
+          <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">Email</dt>
+            <dd class="mt-1 text-sm text-gray-900"><%= @admin.email %></dd>
+          </div>
+
+          <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">Event yang Dibuat</dt>
+            <dd class="mt-2">
+              <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-300">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Nama Event</th>
+                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tanggal</th>
+                      <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                      <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span class="sr-only">Aksi</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200 bg-white">
+                    <% @admin.created_events.ordered_by_category.each do |event| %>
+                      <tr>
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                          <div class="flex items-center">
+                            <div>
+                              <div class="font-medium text-gray-900">
+                                <%= event.name %>
+                                <% if event.category == 'main' %>
+                                  <span class="ml-1 inline-flex items-center rounded-md bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">Utama</span>
+                                <% end %>
+                              </div>
+                              <div class="text-gray-500"><%= event.location %></div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <%= l event.event_date, format: :long %>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm">
+                          <% status_color = case event.registration_status
+                               when 'Pendaftaran dibuka' then 'green'
+                               when 'Pendaftaran akan dibuka' then 'yellow'
+                               when 'Pendaftaran sudah ditutup' then 'red'
+                               when 'Pendaftaran ditutup (Kuota Penuh)' then 'red'
+                               else 'gray'
+                             end %>
+                          <span class="inline-flex items-center rounded-md bg-<%= status_color %>-100 px-2.5 py-0.5 text-xs font-medium text-<%= status_color %>-800">
+                            <%= event.registration_status %>
+                          </span>
+                        </td>
+                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                          <%= link_to "Lihat", admin_panel_event_path(event), class: "text-blue-600 hover:text-blue-900" %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div> 

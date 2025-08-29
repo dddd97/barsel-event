@@ -1,0 +1,46 @@
+<div class="admin-events">
+  <h1>Manajemen Event</h1>
+  
+  <div class="actions" style="margin: 20px 0;">
+    <%= link_to "Dashboard", admin_dashboard_path, class: "button-secondary" %>
+    <%= link_to "Tambah Event Baru", new_event_path, class: "button-primary" %>
+  </div>
+  
+  <div class="events-table" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #e9ecef;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">ID</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Nama Event</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Tanggal</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Jumlah Peserta</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Jumlah Hadiah</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Hadiah Terundi</th>
+          <th style="padding: 12px; text-align: center; border-bottom: 2px solid #dee2e6;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @events.each do |event| %>
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><%= event.id %></td>
+            <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><%= event.name %></td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">
+              <%= event.event_date&.strftime("%d %b %Y") %>
+            </td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= event.participants.count %></td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= event.prizes.count %></td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;"><%= event.prizes.where.not(winner_id: nil).count %></td>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">
+              <div style="display: flex; gap: 5px; justify-content: center;">
+                <%= link_to "Detail", event_path(event), class: "button-secondary", style: "padding: 5px 10px; font-size: 0.8rem;" %>
+                <%= link_to "Hadiah", event_prizes_path(event), class: "button-secondary", style: "padding: 5px 10px; font-size: 0.8rem;" %>
+                <%= link_to "Peserta", admin_panel_event_participants_path(event), class: "button-secondary", style: "padding: 5px 10px; font-size: 0.8rem;" %>
+                <%= link_to "Pemenang", winners_event_path(event), class: "button-secondary", style: "padding: 5px 10px; font-size: 0.8rem;" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div> 

@@ -1,0 +1,134 @@
+<%# app/views/admin_panel/participants/new.html.erb %>
+<div class="participant-new">
+  <div class="page-header">
+    <h1>Tambah Peserta Baru - <%= @event.name %></h1>
+  </div>
+
+  <div class="participant-form">
+    <%= form_with model: [:admin_panel, @event, @participant], local: true do |f| %>
+      <% if @participant.errors.any? %>
+        <div class="error-messages">
+          <h2><%= pluralize(@participant.errors.count, "error") %> prohibited this participant from being saved:</h2>
+          <ul>
+            <% @participant.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="form-group">
+        <%= f.label :name, "Nama" %>
+        <%= f.text_field :name, class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :nik, "NIK (Nomor KTP)" %>
+        <%= f.text_field :nik, class: "form-control", required: true, pattern: "[0-9]{16}", title: "NIK harus 16 digit angka" %>
+        <small class="form-text text-muted">Masukkan 16 digit NIK tanpa spasi atau tanda hubung.</small>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :email, "Email" %>
+        <%= f.email_field :email, class: "form-control" %>
+        <small class="form-text text-muted">Opsional. Digunakan untuk mengirim konfirmasi pendaftaran.</small>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :phone_number, "No. Telepon" %>
+        <%= f.text_field :phone_number, class: "form-control", required: true %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :institution, "Institusi" %>
+        <%= f.text_field :institution, class: "form-control" %>
+        <small class="form-text text-muted">Opsional. Nama perusahaan atau institusi peserta.</small>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Simpan", class: "btn btn-primary" %>
+        <%= link_to "Batal", admin_panel_event_participants_path(@event), class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .participant-new {
+      padding: 20px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    .participant-form {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .form-text {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .text-muted {
+      color: #6c757d;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .error-messages {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .error-messages h2 {
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .error-messages ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  </style>
+<% end %> 

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+client/node_modules
+vendor/bundle
+
+# Logs
+*.log
+log/
+
+# Environment variables
+.env.local
+.env.production
+
+# Database
+db/*.sqlite3
+
+# Temporary files
+tmp/
+.DS_Store
+.vscode/
+.idea/
+
+# Git
+.git
+.gitignore
+README.md
+
+# Build outputs
+public/vite-dev
+client/dist
+
+# Traefik data
+traefik-data/

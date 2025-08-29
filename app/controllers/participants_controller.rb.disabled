@@ -1,0 +1,341 @@
+class ParticipantsController < ApplicationController
+  # Skip CSRF protection for API-style requests
+  skip_before_action :verify_authenticity_token, if: :json_request?
+  
+  before_action :set_event
+  before_action :set_participant, only: [:show, :download_card]
+  before_action :check_registration_open, only: [:new, :create]
+  before_action :require_admin, only: [:index]
+  
+  helper_method :censor_nik, :format_indonesian_date
+
+  def index
+    @participants = @event.participants.order(created_at: :desc)
+  end
+
+  def new
+    @participant = @event.participants.new
+  end
+
+  def create
+    @participant = @event.participants.new(participant_params)
+
+    # Skip Recaptcha verification in development environment or if keys are not configured
+    recaptcha_valid = Rails.env.development? || 
+                     !Recaptcha.configuration.site_key.to_s.empty? && verify_recaptcha(model: @participant)
+
+    if recaptcha_valid && @participant.save
+      # Kirim email konfirmasi jika email ada
+      ParticipantMailer.registration_confirmation(@participant).deliver_later if @participant.email.present?
+      
+      redirect_to event_participant_path(@event, @participant), 
+                  notice: "Pendaftaran berhasil! Berikut adalah kartu peserta Anda."
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def show
+    unless @participant
+      redirect_to event_path(@event), alert: "Peserta tidak ditemukan."
+    end
+  end
+
+  def check_form
+    # Halaman form cek status pendaftaran
+    respond_to do |format|
+      format.html # Render the HTML form
+      format.json do
+        # Handle JSON requests for checking registration
+        if params[:nik].present?
+          participant = @event.participants.find_by(nik: params[:nik])
+        elsif params[:registration_number].present? 
+          participant = @event.participants.find_by(registration_number: params[:registration_number])
+        else
+          render json: { error: "NIK atau Nomor Registrasi harus diisi" }, status: :bad_request
+          return
+        end
+
+        if participant
+          render json: {
+            found: true,
+            participant: {
+              id: participant.id,
+              name: participant.name,
+              email: participant.email,
+              nik: participant.nik,
+              registrationNumber: participant.registration_number,
+              institution: participant.institution
+            }
+          }
+        else
+          render json: {
+            found: false
+          }
+        end
+      end
+    end
+  end
+
+  def check_registration
+    if params[:nik].present?
+      participant = @event.participants.find_by(nik: params[:nik])
+    elsif params[:registration_number].present? 
+      participant = @event.participants.find_by(registration_number: params[:registration_number])
+    else
+      respond_to do |format|
+        format.json { render json: { error: "NIK atau Nomor Registrasi harus diisi" }, status: :bad_request }
+        format.html { redirect_to check_registration_event_path(@event), alert: "NIK atau Nomor Registrasi harus diisi" }
+      end
+      return
+    end
+
+    if participant
+      respond_to do |format|
+        format.json do
+          render json: {
+            found: true,
+            participant: {
+              id: participant.id,
+              name: participant.name,
+              email: participant.email,
+              nik: participant.nik,
+              registrationNumber: participant.registration_number,
+              institution: participant.institution
+            }
+          }
+        end
+        format.html { redirect_to event_participant_path(@event, participant) }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { found: false } }
+        format.html { redirect_to check_registration_event_path(@event), alert: "Data peserta tidak ditemukan." }
+      end
+    end
+  end
+
+  def check_result
+    # Verify captcha first
+    if params[:captcha_input].blank? || params[:captcha_input].downcase != session[:captcha].downcase
+      redirect_to check_registration_event_path(@event), alert: "Kode verifikasi tidak valid. Silakan coba lagi."
+      return
+    end
+    
+    # Look up participant by NIK and phone_number
+    nik = params[:nik]
+    phone_number = params[:phone_number]
+    
+    @participant = @event.participants.find_by(nik: nik, phone_number: phone_number)
+
+    if @participant
+      render :check_result
+    else
+      redirect_to check_registration_event_path(@event), 
+                  alert: "Data peserta tidak ditemukan. Pastikan NIK dan nomor telepon sesuai dengan data pendaftaran."
+    end
+  end
+
+  def download_card
+    # Generate QR Code
+    qr_data = {
+      event_id: @event.id,
+      participant_id: @participant.id,
+      registration_number: @participant.registration_number,
+      name: @participant.name
+    }.to_json
+    qrcode = RQRCode::QRCode.new(qr_data)
+    @qr_code_svg = qrcode.as_svg(
+      offset: 0,
+      color: '000',
+      fill: 'fff',
+      shape_rendering: 'crispEdges',
+      module_size: 6,
+      standalone: true,
+      use_path: true,
+      viewbox: true
+    )
+
+    # Prepare banner for embedding as a Data URI
+    if @event.banner.attached?
+      image_data = @event.banner.download
+      base64_image = Base64.strict_encode64(image_data)
+      @banner_data_uri = "data:#{@event.banner.content_type};base64,#{base64_image}"
+    end
+
+    respond_to do |format|
+      format.pdf do
+        # Render the HTML template first (explicitly specifying format: :html)
+        html = render_to_string(
+          template: 'participants/card',
+          layout: false,
+          formats: [:html]
+        )
+        
+        # Convert the HTML to PDF using Grover with specific options for A6 size
+        grover = Grover.new(
+          html, 
+          format: 'A6',
+          margin: { top: '0cm', bottom: '0cm', left: '0cm', right: '0cm' },
+          viewport: {
+            width: 420,   # 10.5cm at 96 DPI
+            height: 595,  # 14.8cm at 96 DPI
+          },
+          print_background: true,
+          prefer_css_page_size: true,
+          emulate_media: 'screen',
+          scale: 1.0,
+          display_url: 'https://doorprize.app',
+          cache: false,
+          quality: 100,
+          wait_until: 'networkidle2'
+        )
+        
+        pdf_data = grover.to_pdf
+        
+        # Determine disposition based on download parameter
+        disposition = params[:download] == 'true' ? 'attachment' : 'inline'
+        
+        send_data pdf_data,
+                  filename: "kartu_peserta_#{@participant.registration_number}.pdf",
+                  type: "application/pdf",
+                  disposition: disposition
+      end
+      
+      # Added JSON format for API requests - returns card data for preview
+      format.json do
+        html = render_to_string(
+          template: 'participants/card',
+          layout: false,
+          formats: [:html]
+        )
+        
+        render json: {
+          card_html: html,
+          participant_name: @participant.name,
+          registration_number: @participant.registration_number,
+          qr_code_svg: @qr_code_svg,
+          banner_data_uri: @banner_data_uri
+        }
+      end
+      
+      # Add fallback formats
+      format.html { render template: 'participants/card', layout: false }
+      format.any { redirect_to event_participant_path(@event, @participant), alert: "Format tidak didukung. Gunakan format PDF atau JSON." }
+    end
+  end
+  
+  # New endpoint to get card data for preview without generating PDF
+  def card_preview
+    set_participant
+    
+    # Generate QR Code
+    qr_data = {
+      event_id: @event.id,
+      participant_id: @participant.id,
+      registration_number: @participant.registration_number,
+      name: @participant.name
+    }.to_json
+    qrcode = RQRCode::QRCode.new(qr_data)
+    qr_code_svg = qrcode.as_svg(
+      offset: 0,
+      color: '000',
+      fill: 'fff',
+      shape_rendering: 'crispEdges',
+      module_size: 6,
+      standalone: true,
+      use_path: true,
+      viewbox: true
+    )
+
+    # Prepare banner for embedding as a Data URI
+    banner_data_uri = nil
+    if @event.banner.attached?
+      image_data = @event.banner.download
+      base64_image = Base64.strict_encode64(image_data)
+      banner_data_uri = "data:#{@event.banner.content_type};base64,#{base64_image}"
+    end
+    
+    render json: {
+      event: {
+        id: @event.id,
+        name: @event.name,
+        location: @event.location,
+        event_date: @event.event_date&.strftime('%Y-%m-%d')
+      },
+      participant: {
+        id: @participant.id,
+        name: @participant.name,
+        nik: censor_nik(@participant.nik),
+        phone_number: @participant.phone_number,
+        institution: @participant.institution,
+        email: @participant.email,
+        registration_number: @participant.registration_number
+      },
+      qr_code_svg: qr_code_svg,
+      banner_data_uri: banner_data_uri
+    }
+  end
+
+  def refresh_captcha
+    session[:captcha] = SecureRandom.hex(2)
+    respond_to do |format|
+      format.json { render json: { captcha: session[:captcha] } }
+    end
+  end
+
+  private
+
+  def set_event
+    # Handle both nested routes (event_id) and member routes (id)
+    event_id = params[:event_id] || params[:id]
+    @event = Event.find(event_id)
+  end
+
+  def set_participant
+    @participant = @event.participants.find_by(id: params[:id])
+  end
+
+  def participant_params
+    params.require(:participant).permit(:name, :email, :phone_number, :institution, :nik)
+  end
+
+  def check_registration_open
+    unless @event.registration_open?
+      redirect_to event_path(@event), 
+                  alert: "Pendaftaran untuk event ini sudah ditutup."
+    end
+  end
+  
+  def require_admin
+    unless admin_signed_in?
+      redirect_to event_path(@event), alert: "Anda tidak memiliki akses ke halaman ini."
+    end
+  end
+
+  def censor_nik(nik)
+    return nil unless nik.present?
+    return nik if nik.length < 5
+    
+    # Keep first 8 digits, censor middle 4, show last 4
+    visible_part_start = nik[0..7]
+    censored_part = "XXXX"
+    visible_part_end = nik[-4..-1]
+    
+    "#{visible_part_start}#{censored_part}#{visible_part_end}"
+  end
+  
+  def format_indonesian_date(date)
+    return "-" unless date.present?
+    months = {
+      1 => "Januari", 2 => "Februari", 3 => "Maret", 4 => "April", 
+      5 => "Mei", 6 => "Juni", 7 => "Juli", 8 => "Agustus", 
+      9 => "September", 10 => "Oktober", 11 => "November", 12 => "Desember"
+    }
+    "#{date.day} #{months[date.month]} #{date.year}"
+  end
+
+  def json_request?
+    request.format.json?
+  end
+end
