@@ -58,7 +58,7 @@ gem "thruster", require: false
 gem 'image_processing', '~> 1.2'
 gem 'active_storage_validations'
 
-gem "pagy", "~> 6.0"
+gem "pagy", "~> 9.4"
 gem "good_job"
 
 # Hotwire's SPA-like page transitions and Turbo Streams replacement for Ajax
